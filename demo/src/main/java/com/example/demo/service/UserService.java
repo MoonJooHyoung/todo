@@ -33,23 +33,21 @@ public class UserService {
         return userRepository.save(userEntity);
     }
 
+    /** 아이디로 사용자 조회 (로그인 시 아이디 존재 여부·비밀번호 검증용) */
+    public Optional<UserEntity> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
     // 자격 증명으로 사용자 조회
     public UserEntity getByCredentials(String username, String password, PasswordEncoder passwordEncoder) {
-        // 사용자 조회 (Optional 반환)
         Optional<UserEntity> optionalUser = userRepository.findByUsername(username);
-
         if (optionalUser.isPresent()) {
-            UserEntity user = optionalUser.get();  // 값이 있을 경우 꺼내서 사용
-
-            // 비밀번호 비교
-            boolean passwordMatches = passwordEncoder.matches(password, user.getPassword());
-
-            if (passwordMatches) {
-                return user;  // 비밀번호가 일치하면 사용자 반환
+            UserEntity user = optionalUser.get();
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                return user;
             }
         }
-
-        return null;  // 사용자 없음 또는 비밀번호 불일치
+        return null;
     }
 
     // 모든 사용자 조회

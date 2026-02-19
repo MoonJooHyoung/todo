@@ -7,7 +7,8 @@ import {
   ListItemSecondaryAction,
   IconButton,
   Snackbar,
-  Alert
+  Alert,
+  Button
 } from "@mui/material";
 import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
 
@@ -33,12 +34,20 @@ const Todo = (props) => {
     setReadOnly(false);
   };
 
-  // Checkbox 상태 변경 함수
+  // Checkbox 상태 변경 함수 (체크 시 완료한 일로 이동)
   const checkboxEventHandler = (e) => {
-    item.done = e.target.checked; 
-    editItem(item); // 수정된 아이템을 부모로 전달
-    // 서버와 동기화하는 API 호출 예시
-    // updateItemStatus(item.id, item.done);
+    const updated = { ...item, done: e.target.checked };
+    setItem(updated);
+    editItem(updated);
+  };
+
+  // 완료 버튼: 체크하고 완료한 일로 이동
+  const completeEventHandler = () => {
+    const completed = { ...item, done: true };
+    setItem(completed);
+    editItem(completed);
+    setSnackbarMessage("완료한 일로 이동했습니다.");
+    setOpenSnackbar(true);
   };
 
   // 삭제 이벤트 핸들러
@@ -62,33 +71,44 @@ const Todo = (props) => {
   };
 
   return (
-    <ListItem>
-      {/* checkboxEventHandler 함수로 체크박스 상태 제어 */}
-      <Checkbox checked={item.done} onChange={checkboxEventHandler} />
-      <ListItemText>
-        <InputBase
-          inputProps={{
-            "aria-label": "naked",
-            readOnly: readOnly,
-          }}
-          onClick={turnOffReadOnly}
-          onKeyDown={turnOnReadOnly}
-          onChange={editEventHandler}
-          type="text"
-          id={item.id}
-          name={item.id}
-          value={item.title}
-          multiline={true}
-          fullWidth={true}
-        />
-      </ListItemText>
-      <ListItemSecondaryAction>
-        <IconButton aria-label="Delete Todo" onClick={deleteEventHandler}>
-          <DeleteOutlined />
-        </IconButton>
-      </ListItemSecondaryAction>
+    <>
+      <ListItem>
+        <Checkbox checked={item.done} onChange={checkboxEventHandler} />
+        <ListItemText>
+          <InputBase
+            inputProps={{
+              "aria-label": "naked",
+              readOnly: readOnly,
+            }}
+            onClick={turnOffReadOnly}
+            onKeyDown={turnOnReadOnly}
+            onChange={editEventHandler}
+            type="text"
+            id={item.id}
+            name={item.id}
+            value={item.title}
+            multiline={true}
+            fullWidth={true}
+          />
+        </ListItemText>
+        <ListItemSecondaryAction sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          {!item.done && (
+            <Button
+              size="small"
+              variant="outlined"
+              color="success"
+              onClick={completeEventHandler}
+              sx={{ mr: 0.5 }}
+            >
+              완료
+            </Button>
+          )}
+          <IconButton aria-label="Delete Todo" onClick={deleteEventHandler}>
+            <DeleteOutlined />
+          </IconButton>
+        </ListItemSecondaryAction>
+      </ListItem>
 
-      {/* Snackbar for feedback */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
@@ -102,7 +122,7 @@ const Todo = (props) => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </ListItem>
+    </>
   );
 };
 

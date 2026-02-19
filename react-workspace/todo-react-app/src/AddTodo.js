@@ -1,58 +1,57 @@
 import React, { useState } from "react";
-import { Button, Grid, TextField } from "@mui/material";
-import PropTypes from "prop-types"; // PropTypes 추가
+import { Box, Button, TextField } from "@mui/material";
+import PropTypes from "prop-types";
 
 const AddTodo = (props) => {
-    // 사용자의 입력을 저장할 오브젝트
     const [item, setItem] = useState({ title: "" });
-    const { addItem } = props; // props에서 addItem 추출
+    const { addItem } = props;
 
-    // Enter 키 이벤트 핸들러
     const enterKeyEventHandler = (e) => {
-        if (e.key === "Enter") {
-            onButtonClick();
-        }
+        if (e.key === "Enter") onButtonClick();
     };
 
-    // 버튼 클릭 시 호출되는 함수
     const onButtonClick = () => {
-        if (item.title.trim()) { // 공백 입력 방지
-            console.log("Added item:", item); // 추가된 아이템 로그 출력
-            addItem(item); // 부모로 아이템 전달
-            setItem({ title: "" }); // 입력 초기화
+        if (item.title.trim()) {
+            addItem(item);
+            setItem({ title: "" });
         } else {
-            alert("내용을 입력해주세요."); // 공백 입력 방지 알림
+            alert("내용을 입력해주세요.");
         }
     };
 
-    // 입력 변경 시 호출되는 함수
     const onInputChange = (e) => {
         setItem({ title: e.target.value });
     };
 
     return (
-        <Grid container style={{ marginTop: 20 }}>
-            <Grid item xs={11} md={11} style={{ padding: 16 }}>
-                <TextField 
-                    placeholder="Add Todo here"
-                    fullWidth
-                    onChange={onInputChange}
-                    onKeyDown={enterKeyEventHandler} // onKeyPress -> onKeyDown 변경
-                    value={item.title}
-                />
-            </Grid>
-            <Grid item xs={1} md={1}>
-                <Button 
-                    fullWidth
-                    style={{ height: "100%" }}
-                    color="secondary"
-                    variant="outlined"
-                    onClick={onButtonClick}
-                >
-                    +
-                </Button>
-            </Grid>
-        </Grid>
+        <Box
+            sx={{
+                display: "flex",
+                alignItems: "stretch",
+                gap: 0,
+                marginTop: 2,
+                "& .MuiOutlinedInput-root": { borderRadius: "4px 0 0 4px" },
+                "& .MuiButton-root": { borderRadius: "0 4px 4px 0", minWidth: 48 },
+            }}
+        >
+            <TextField
+                placeholder="Add Todo here"
+                size="small"
+                fullWidth
+                onChange={onInputChange}
+                onKeyDown={enterKeyEventHandler}
+                value={item.title}
+                sx={{ "& .MuiOutlinedInput-root": { height: 40 } }}
+            />
+            <Button
+                color="secondary"
+                variant="outlined"
+                onClick={onButtonClick}
+                sx={{ height: 40, px: 1.5 }}
+            >
+                +
+            </Button>
+        </Box>
     );
 };
 

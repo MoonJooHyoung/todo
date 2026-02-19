@@ -69,45 +69,41 @@ public class UserController {
         }
     }
 
-    // 사용자 로그인
+    // 사용자 로그인 - 아이디 없음 / 비밀번호 틀림 구분하여 에러 코드 반환
     @PostMapping("/signin")
     public ResponseEntity<?> authenticate(@RequestBody UserDTO userDTO) {
         try {
             if (userDTO == null || userDTO.getUsername() == null || userDTO.getPassword() == null) {
-                throw new RuntimeException("Invalid Username or Password");
+                return ResponseEntity.badRequest()
+                        .body(ResponseDTO.<String>builder().error("INVALID_INPUT").build());
             }
 
-            // 사용자 인증 - 비밀번호 비교 추가
-            UserEntity user = userService.getByCredentials(userDTO.getUsername(), userDTO.getPassword(), passwordEncoder);
-
-            if (user != null) {
-                // 토큰 생성
-                final String token = tokenProvider.create(user);
-
-                // 응답 DTO 생성
-                final UserDTO responseUserDTO = UserDTO.builder()
-                        .username(user.getUsername())
-                        .id(user.getId().toString()) // UUID -> String 변환
-                        .token(token)
-                        .build();
-
-                log.info("User logged in successfully: {}", userDTO.getUsername());
-                return ResponseEntity.ok().body(responseUserDTO);
-            } else {
-                log.warn("Login failed for user: {}", userDTO.getUsername());
-                ResponseDTO<String> responseDTO = ResponseDTO.<String>builder()
-                        .error("Invalid credentials")
-                        .build();
-                return ResponseEntity.status(401).body(responseDTO);
+            var optionalUser = userService.findByUsername(userDTO.getUsername());
+            if (optionalUser.isEmpty()) {
+                log.warn("Login failed: user not found: {}", userDTO.getUsername());
+                return ResponseEntity.status(401)
+                        .body(ResponseDTO.<String>builder().error("USER_NOT_FOUND").build());
             }
-        } catch (RuntimeException e) {
-            log.error("Authentication error: {}", e.getMessage());
-            ResponseDTO<String> responseDTO = ResponseDTO.<String>builder().error(e.getMessage()).build();
-            return ResponseEntity.badRequest().body(responseDTO);
+
+            UserEntity user = optionalUser.get();
+            if (!passwordEncoder.matches(userDTO.getPassword(), user.getPassword())) {
+                log.warn("Login failed: wrong password for user: {}", userDTO.getUsername());
+                return ResponseEntity.status(401)
+                        .body(ResponseDTO.<String>builder().error("WRONG_PASSWORD").build());
+            }
+
+            final String token = tokenProvider.create(user);
+            final UserDTO responseUserDTO = UserDTO.builder()
+                    .username(user.getUsername())
+                    .id(user.getId().toString())
+                    .token(token)
+                    .build();
+            log.info("User logged in successfully: {}", user.getUsername());
+            return ResponseEntity.ok().body(responseUserDTO);
         } catch (Exception e) {
             log.error("Unexpected error during authentication", e);
-            ResponseDTO<String> responseDTO = ResponseDTO.<String>builder().error("Internal server error").build();
-            return ResponseEntity.status(500).body(responseDTO);
+            return ResponseEntity.status(500)
+                    .body(ResponseDTO.<String>builder().error("Internal server error").build());
         }
     }
 

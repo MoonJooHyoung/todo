@@ -25,11 +25,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private TokenProvider tokenProvider;
 
+    /** OPTIONS(preflight) 요청은 JWT 검사하지 않음 - CORS용 */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return "OPTIONS".equalsIgnoreCase(request.getMethod());
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
             String token = parseBearerToken(request);
-            log.info("Filter is running...");
+            log.debug("JWT Filter: method={}, path={}, hasAuthHeader={}", request.getMethod(), request.getRequestURI(), token != null);
 
             if (token != null && !token.equalsIgnoreCase("null")) {
                 String userId = tokenProvider.validateAndGetUserId(token);
@@ -47,8 +53,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception ex) {
             log.error("Could not set user authentication in security context", ex);
+            // 401 응답에도 CORS 헤더 추가 (없으면 브라우저가 응답을 막아서 프론트에서 401을 못 읽음)
+            addCorsHeaders(response);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
-            return; // 요청을 종료
+            return;
         }
 
         filterChain.doFilter(request, response);
@@ -56,12 +64,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
     private String parseBearerToken(HttpServletRequest request) {
-        // Http 요청의 헤더에서 Bearer 토큰을 파싱하여 반환
         String bearerToken = request.getHeader("Authorization");
-
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);  // "Bearer "를 제외한 토큰 반환
+            return bearerToken.substring(7);
         }
         return null;
+    }
+
+    private void addCorsHeaders(HttpServletResponse response) {
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
     }
 }

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Container, Grid, Typography, TextField, Button, CircularProgress } from "@mui/material";
-import { signin } from "./service/ApiService";  // signin 함수가 정상적으로 import 됩니다.
+import { Container, Grid, Typography, TextField, Button, CircularProgress, Link } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
+import { signin } from "./service/ApiService";
 
 function Login() {
     const [loading, setLoading] = useState(false);  // 로딩 상태 관리
@@ -15,13 +16,21 @@ function Login() {
 
         signin({ username, password })
             .then((response) => {
-                // 로그인 성공 후 토큰을 localStorage 또는 sessionStorage에 저장 가능
-                localStorage.setItem("token", response.token);  // 예: 토큰을 localStorage에 저장
-                window.location.href = "/";  // 홈 화면으로 리디렉션
+                if (response && response.token) {
+                    localStorage.setItem("ACCESS_TOKEN", response.token);
+                    window.location.href = "/";
+                }
             })
             .catch((error) => {
                 console.error("Login failed:", error);
-                setError("로그인에 실패했습니다. 아이디와 비밀번호를 확인하세요.");
+                const msg = error && error.message;
+                if (msg === "USER_NOT_FOUND") {
+                    setError("아이디가 없습니다.");
+                } else if (msg === "WRONG_PASSWORD") {
+                    setError("비밀번호가 틀렸습니다.");
+                } else {
+                    setError(msg || "로그인에 실패했습니다. 아이디와 비밀번호를 확인하세요.");
+                }
             })
             .finally(() => {
                 setLoading(false);  // 로딩 끝
@@ -77,7 +86,7 @@ function Login() {
                             type="submit"
                             fullWidth
                             variant="contained"
-                            disabled={loading}  // 로딩 중에는 버튼 비활성화
+                            disabled={loading}
                             sx={{
                                 backgroundColor: "green",
                                 color: "white",
@@ -86,6 +95,12 @@ function Login() {
                         >
                             {loading ? <CircularProgress size={24} /> : "로그인"}
                         </Button>
+                    </Grid>
+
+                    <Grid item xs={12} style={{ textAlign: "center" }}>
+                        <Link component={RouterLink} to="/signup" variant="body2" sx={{ color: "darkgreen" }}>
+                            계정이 없으신가요? 회원가입
+                        </Link>
                     </Grid>
                 </Grid>
             </form>

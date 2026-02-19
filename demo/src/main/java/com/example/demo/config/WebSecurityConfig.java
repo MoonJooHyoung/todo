@@ -2,6 +2,7 @@ package com.example.demo.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -45,10 +46,11 @@ public class WebSecurityConfig {
                     sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // 경로별 접근 권한 설정
+                // 경로별 접근 권한 설정 (OPTIONS는 CORS preflight용으로 인증 없이 허용)
                 .authorizeHttpRequests(authorize -> authorize
-                    .requestMatchers("/", "/auth/**").permitAll() // 공개 경로
-                    .anyRequest().authenticated() // 인증 필요 경로
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    .requestMatchers("/", "/auth/**").permitAll()
+                    .anyRequest().authenticated()
                 )
 
                 // CORS 설정
@@ -70,9 +72,11 @@ public class WebSecurityConfig {
         String frontendUrl = System.getenv("FRONTEND_URL"); // 예를 들어 환경 변수로 설정
         configuration.setAllowedOrigins(List.of(frontendUrl != null ? frontendUrl : "http://localhost:3000")); 
 
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true); // 인증 정보 허용
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         // 모든 경로에 대해 CORS 설정 적용
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

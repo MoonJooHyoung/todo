@@ -6,9 +6,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -17,8 +19,11 @@ import java.util.Date;
 @Service
 public class TokenProvider {
 
-    // SECRET_KEY 생성: 외부 설정 파일에서 로드하는 것이 권장됨
-    private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    private final SecretKey SECRET_KEY;
+
+    public TokenProvider(@Value("${app.jwt.secret:MoonTodoJwtSecretKeyForSigningTokenPleaseUseLongEnoughStringOver64Chars}") String secret) {
+        this.SECRET_KEY = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
 
     /**
      * JWT 토큰 생성 메서드
