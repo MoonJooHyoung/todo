@@ -83,7 +83,9 @@ const Todo = (props) => {
           }),
         }}
       >
-        <Checkbox checked={isChecked} onChange={checkboxEventHandler} />
+        {!item.completed && (
+          <Checkbox checked={isChecked} onChange={checkboxEventHandler} />
+        )}
         <ListItemText>
           <InputBase
             inputProps={{
