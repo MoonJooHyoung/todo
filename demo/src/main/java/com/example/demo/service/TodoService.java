@@ -22,7 +22,7 @@ public class TodoService {
         // TodoEntity 저장
         TodoEntity savedEntity = repository.save(entity);  // 저장된 엔티티를 변수에 할당
         // TodoEntity 검색 (Optional 처리)
-        TodoEntity retrievedEntity = repository.findById(savedEntity.getId().toString())  // UUID -> String 변환
+        TodoEntity retrievedEntity = repository.findById(savedEntity.getId())
                 .orElseThrow(() -> new RuntimeException("Todo not found"));
         return retrievedEntity.getTitle();
     }
@@ -57,15 +57,13 @@ public class TodoService {
         validate(entity);
 
         // (2) 넘겨받은 엔티티 id를 이용해 TodoEntity를 가져온다.
-        Optional<TodoEntity> original = repository.findById(entity.getId().toString());  // UUID -> String 변환
+        Optional<TodoEntity> original = repository.findById(entity.getId());
 
         if (original.isPresent()) {
-            // (3) 반환된 TodoEntity가 존재하면 값을 새 entity의 값으로 덮어 씌운다.
             TodoEntity todo = original.get();
             todo.setTitle(entity.getTitle());
             todo.setDone(entity.isDone());
-
-            // (4) 데이터베이스에 새 값을 저장한다.
+            todo.setCompleted(entity.isCompleted());
             repository.save(todo);
         } else {
             // 엔티티가 없으면 예외 처리

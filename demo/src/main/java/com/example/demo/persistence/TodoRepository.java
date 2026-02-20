@@ -5,8 +5,9 @@ import org.springframework.stereotype.Repository;
 import com.example.demo.model.TodoEntity;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface TodoRepository extends JpaRepository<TodoEntity, String>{
+public interface TodoRepository extends JpaRepository<TodoEntity, UUID> {
 	List<TodoEntity> findByUserId(String userId);
 }

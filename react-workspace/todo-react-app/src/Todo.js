@@ -13,15 +13,14 @@ import {
 import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
 
 const Todo = (props) => {
-  const [item, setItem] = useState(props.item);
+  const [item, setItem] = useState({ ...props.item, completed: props.item.completed === true });
   const [readOnly, setReadOnly] = useState(true);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-  const { editItem, deleteItem } = props;
+  const { editItem, deleteItem, showCompleteButton = false, isTodayList = false } = props;
 
-  // 부모로부터 받은 item이 변경될 때 상태 동기화
   useEffect(() => {
-    setItem(props.item);
+    setItem({ ...props.item, completed: props.item.completed === true });
   }, [props.item]);
 
   // 제목을 수정할 때 호출되는 함수
@@ -34,18 +33,18 @@ const Todo = (props) => {
     setReadOnly(false);
   };
 
-  // Checkbox 상태 변경 함수 (체크 시 완료한 일로 이동)
+  // 체크만 함 (완료한 일로는 안 넘어감)
   const checkboxEventHandler = (e) => {
-    const updated = { ...item, done: e.target.checked };
+    const updated = { ...item, done: e.target.checked, completed: item.completed };
     setItem(updated);
     editItem(updated);
   };
 
-  // 완료 버튼: 체크하고 완료한 일로 이동
+  // 완료 버튼: 완료한 일로 이동 (completed=true)
   const completeEventHandler = () => {
-    const completed = { ...item, done: true };
-    setItem(completed);
-    editItem(completed);
+    const updated = { ...item, done: true, completed: true };
+    setItem(updated);
+    editItem(updated);
     setSnackbarMessage("완료한 일로 이동했습니다.");
     setOpenSnackbar(true);
   };
@@ -70,10 +69,21 @@ const Todo = (props) => {
     }
   };
 
+  const isChecked = item.done === true;
+  const showCompleteBtn = showCompleteButton && !item.completed;
+
   return (
     <>
-      <ListItem>
-        <Checkbox checked={item.done} onChange={checkboxEventHandler} />
+      <ListItem
+        sx={{
+          ...(isTodayList && isChecked && {
+            bgcolor: "#e3f2fd",
+            borderRadius: 1,
+            "& .MuiInputBase-input": { color: "rgba(0,0,0,0.87)" },
+          }),
+        }}
+      >
+        <Checkbox checked={isChecked} onChange={checkboxEventHandler} />
         <ListItemText>
           <InputBase
             inputProps={{
@@ -92,7 +102,7 @@ const Todo = (props) => {
           />
         </ListItemText>
         <ListItemSecondaryAction sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          {!item.done && (
+          {showCompleteBtn && (
             <Button
               size="small"
               variant="outlined"

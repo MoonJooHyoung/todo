@@ -11,23 +11,24 @@ import java.util.UUID;
 @AllArgsConstructor
 @Data
 public class TodoDTO {
-    private UUID id;  // UUID로 변경
+    private UUID id;
     private String title;
     private boolean done;
+    private boolean completed;
 
-    // 엔티티를 DTO로 변환하는 생성자
     public TodoDTO(final TodoEntity entity) {
-        this.id = entity.getId();  // UUID 그대로 사용
+        this.id = entity.getId();
         this.title = entity.getTitle();
         this.done = entity.isDone();
+        this.completed = entity.isCompleted();
     }
 
-    // DTO를 엔티티로 변환하는 메소드
     public static TodoEntity toEntity(final TodoDTO dto) {
         return TodoEntity.builder()
-                         .id(dto.getId())  // UUID 그대로 사용
-                         .title(dto.getTitle())
-                         .done(dto.isDone())
-                         .build();
+                .id(dto.getId())
+                .title(dto.getTitle())
+                .done(dto.isDone())
+                .completed(dto.isCompleted())
+                .build();
     }
 }

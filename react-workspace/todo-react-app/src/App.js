@@ -32,8 +32,8 @@ function App() {
   // 아이템 추가
   const addItem = (item) => {
     item.done = false;
-
-    setLoading(true); // 로딩 상태 시작
+    item.completed = false;
+    setLoading(true);
     call("/todo", "POST", item)
       .then((response) => {
         if (response && response.data) {
@@ -76,8 +76,9 @@ function App() {
       .finally(() => setLoading(false)); // 로딩 상태 종료
   };
 
-  const todoList = items.filter((i) => !i.done);
-  const completedList = items.filter((i) => i.done);
+  // 오늘의 할 일: completed가 아닌 것 (체크만 된 항목도 여기 있고, 완료 버튼 누른 것만 completed)
+  const todoList = items.filter((i) => !i.completed);
+  const completedList = items.filter((i) => i.completed);
 
   // 메인: 오늘의 할 일 제목 → 입력칸 → todolist 순서 (패널 하나로 통일, 정가운데)
   let todaySection = (
@@ -107,6 +108,8 @@ function App() {
               key={item.id}
               deleteItem={deleteItem}
               editItem={editItem}
+              showCompleteButton
+              isTodayList
             />
           ))
         )}
@@ -143,6 +146,7 @@ function App() {
               key={item.id}
               deleteItem={deleteItem}
               editItem={editItem}
+              isTodayList={false}
             />
           ))
         )}

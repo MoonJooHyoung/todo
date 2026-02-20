@@ -20,8 +20,10 @@ import lombok.NoArgsConstructor;
 public class TodoEntity {
     @Id
     @GeneratedValue
-    private UUID id;  // UUID 타입으로 변경
+    private UUID id;
     private String userId;
     private String title;
     private boolean done;
+    /** true면 '완료한 일' 목록에 표시, false면 '오늘의 할 일'에만 표시(체크는 done으로) */
+    private boolean completed;
 }
